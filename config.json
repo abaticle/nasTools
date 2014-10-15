@@ -1,0 +1,32 @@
+{
+    "rss": "http://showrss.info/rss.php?user_id=21497&hd=null&proper=null",
+    "langFirst": "fre",
+    "langSecond": "eng",
+    "origin": "\\\\DISKSTATION\\download",
+    "target": "\\\\FREEBOX\\Disque dur\\Vidéos",
+    "moviesExtensions": [
+        "avi",
+        "mp4",
+        "mkv"
+    ],
+    "minSize": 80,
+    "subtitlesExtensions": [
+        "srt",
+        "sub"
+    ],
+    "wordsToAvoid": [
+        "VOSTFR",
+        "FRENCH",
+        "BRRip",
+        "XViD",
+        "uggs[ETRG]",
+        "ETRG",
+        "HDTV",
+        "x264",
+        "KILLERS",
+        "[VTV]", "AC3",
+        "720p", "AAC",
+        "JYK"
+
+    ]
+}
