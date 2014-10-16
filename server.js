@@ -8,13 +8,89 @@ var finder = require("fs-finder");
 
 var config = JSON.parse(fs.readFileSync("config.json"));
 var app = express();
-
+var io = require('socket.io')(app);
 var _token = "";
+
 
 
 app.use('/', express.static(path.join(__dirname, 'client')));
 app.use(bodyParser());
-app.listen(88);
+app.listen(config.port);
+
+init();
+
+/*
+ *   Check config
+ */
+function init() {
+    var check = true;
+
+    if (!fs.existsSync(config.origin)) {
+        console.error("Error reading", config.origin);
+        check = false;
+    }
+    if (!fs.existsSync(config.target)) {
+        console.error("Error reading", config.target);
+        check = false;
+    }
+
+    if (check) {
+        console.log("All is good !");
+    } else {
+        console.error("Config error !");
+    }
+
+    console.log("Listening on port", config.port);
+}
+
+
+/*
+ *   Copy file from origin to target
+ */
+function _copyFile(path, callback) {
+    var callbackCalled = false;
+    var targetPath = config.target + "\\" + _.last(path.split("\\"));
+    var reader = fs.createReadStream(path);
+    var writer = fs.createWriteStream(targetPath);
+
+    var percent = 0;
+    var tempPercent = 0;
+    var copied = 0;
+    var fileSize = fs.statSync(path).size;
+
+    reader.on("error", function (err) {
+        done(err);
+    });
+
+    writer.on("error", function (err) {
+        done(err);
+    });
+
+    writer.on("close", function (ex) {
+        done();
+    });
+
+    reader.pipe(writer);
+
+    reader.on('data', function (chunk) {
+        //console.log(chunk);
+        copied += parseInt(chunk.length);
+
+        percent = parseInt((copied * 100) / fileSize);
+
+        if (tempPercent != percent) {
+            tempPercent = percent;
+            console.log(tempPercent, "%");
+        }
+    });
+
+    function done(err) {
+        if (!callbackCalled) {
+            callback(err);
+            callbackCalled = true;
+        }
+    }
+}
 
 /*
  *   Check if file has a subtitles having same name
@@ -70,7 +146,7 @@ function _cleanFileName(path) {
 
     _.each(config.wordsToAvoid, function (word) {
         fileName = _.without(fileName, word);
-    })
+    });
 
     return fileName.join(" ");
 }
@@ -85,6 +161,26 @@ function _isCopied(path) {
 
     return fs.existsSync(targetPath);
 }
+
+app.get('/copyMovie', function (req, res) {
+
+    var filePath = req.query.path;
+
+    _copyFile(filePath, function (error) {
+        if (error === undefined) {
+            res.send({
+                "error": true,
+                "message": "Fichier copié avec succès"
+            });
+        } else {
+            res.send({
+                "error": false,
+                "message": "Erreur durant le copie"
+            });
+        }
+    })
+
+});
 
 app.get('/getMovies.json', function (req, res) {
 
@@ -101,18 +197,15 @@ app.get('/getMovies.json', function (req, res) {
     hoursFrom = date * 24;
     hoursTo = (date + 1) * 24;
 
-    console.log("hoursFrom" + hoursFrom);
-    console.log("hoursTo" + hoursTo);
-
     finder
         .from(config.origin)
-        .date(">", {
+    /*.date(">", {
             hours: hoursTo
         })
         .date("<", {
             hours: hoursFrom
-        })
-        .size(">=", config.minSize * 8 * 1024)
+        })*/
+    .size(">=", config.minSize * 8 * 1024)
         .filter(_filterExtension)
         .findFiles(function (files) {
             console.log(files);
@@ -129,7 +222,7 @@ app.get('/getMovies.json', function (req, res) {
                 };
 
                 if (fileReturn.name !== "") {
-                    filesReturn.push(fileReturn)
+                    filesReturn.push(fileReturn);
                 }
             });
 
