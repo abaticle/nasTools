@@ -1,0 +1,101 @@
+/* Prevent icon to be clicked */
+
+.sapMPanelExpandableIcon {
+    pointer-events: none;
+}
+.sapUiIcon:before {}
+/* Accept & Reject buttons */
+
+div.sapMBtnInner.sapMBtnAccept>.sapMBtnIcon:active {
+    position: relative;
+    top: 1px;
+    color: white !important;
+    background-color: #2c3e50;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4) inset;
+    border-color: #80a9da;
+}
+div.sapMBtnInner.sapMBtnReject>.sapMBtnIcon:active {
+    position: relative;
+    top: 1px;
+    color: white !important;
+    background-color: #2c3e50;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4) inset;
+    border-color: #80a9da;
+}
+div.sapMBtnInner.sapMBtnReject {
+    background-color: white !important;
+    border: 0px;
+    color: #c0392b !important;
+}
+div.sapMBtnInner.sapMBtnReject>.sapMBtnIcon {
+    color: #c0392b !important;
+}
+div.sapMBtnInner.sapMBtnAccept {
+    background-color: white !important;
+    border: 0px;
+    color: #27ae60 !important;
+}
+div.sapMBtnInner.sapMBtnAccept>.sapMBtnIcon {
+    color: #27ae60 !important;
+}
+/* White text */
+
+.extTextWhite > div > span {
+    color: white !important;
+}
+.extTextWhite > div > span: hover {
+    color: black !important;
+}
+.extTextWhite {
+    color: white !important;
+}
+/* Toolbar */
+
+.extBackgroundBlue {
+    background: #2980b9 !important;
+}
+.extBar::before {
+    border-top: 0px !important;
+}
+/* Toolbar title */
+
+.extTitle {
+    padding-left: 13px;
+    font-size: 1.5em !important;
+}
+.extFileName {
+    font-size: 1.4em !important;
+    margin-top: 0.5em;
+}
+/* Movies list */
+
+.extMoviePanel {} .extMovieVBox > div {
+    padding: 0.5em;
+}
+/*App background*/
+
+.sapUiUfdShellBackground, .sapMGlobalBackgroundColor {
+    background: #ffffff !important;
+    /* Old browsers */
+    
+    background: -moz-linear-gradient(top, #ffffff 0%, #ffffff 100%) !important;
+    /* FF3.6+ */
+    
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ffffff), color-stop(100%, #e5e5e5)) !important;
+    /* Chrome,Safari4+ */
+    
+    background: -webkit-linear-gradient(top, #ffffff 0%, #ffffff 100%) !important;
+    /* Chrome10+,Safari5.1+ */
+    
+    background: -o-linear-gradient(top, #ffffff 0%, #ffffff 100%) !important;
+    /* Opera 11.10+ */
+    
+    background: -ms-linear-gradient(top, #ffffff 0%, #ffffff 100%) !important;
+    /* IE10+ */
+    
+    background: linear-gradient(to bottom, #ffffff 0%, #ffffff 100%) !important;
+    /* W3C */
+    
+    filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ffffff', GradientType=0);
+    /* IE6-9 */
+}

@@ -1,0 +1,1 @@
+<service><id>_nastools.exe</id><name>_NasTools</name><description>Some NAS tools</description><executable>D:\Programmes\Node\node.exe</executable><arguments>--harmony "E:\Dev\Node\nasTools\node_modules\node-windows\lib\wrapper.js" -f "E:\Dev\Node\nasTools\server.js" -l "_NasTools" -g 0.25 -w 1 -r 3 -a n</arguments><logmode>rotate</logmode></service>

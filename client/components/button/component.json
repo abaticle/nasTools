@@ -1,0 +1,10 @@
+{
+    "name": "samples.components.button",
+    "version": "0.1.0",
+    "description": "Super boutton",
+    "keywords": [
+        "button",
+        "super"
+    ],
+    "dependencies": {}
+}

@@ -3,19 +3,17 @@ var opensubtitles = require("opensubtitles-client");
 var fs = require("fs");
 var path = require("path");
 var express = require("express");
+var app = express();
 var bodyParser = require("body-parser");
 var finder = require("fs-finder");
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
+var cors = require('cors')
 
-var config = JSON.parse(fs.readFileSync("config.json"));
-var app = express();
-var io = require('socket.io')(app);
+var config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json')));
 var _token = "";
+var socket;
 
-
-
-app.use('/', express.static(path.join(__dirname, 'client')));
-app.use(bodyParser());
-app.listen(config.port);
 
 init();
 
@@ -40,14 +38,24 @@ function init() {
         console.error("Config error !");
     }
 
+    app.use('/', express.static(path.join(__dirname, 'client')));
+    app.use(bodyParser());
+    app.use(cors());
+    server.listen(config.port);
     console.log("Listening on port", config.port);
+
+    io.on('connection', function(socketTmp) {
+        socket = socketTmp;
+
+        console.log("Socket.io client connected");
+    });
 }
 
 
 /*
  *   Copy file from origin to target
  */
-function _copyFile(path, callback) {
+function _copyFile(path, withSocket, callback) {
     var callbackCalled = false;
     var targetPath = config.target + "\\" + _.last(path.split("\\"));
     var reader = fs.createReadStream(path);
@@ -58,38 +66,72 @@ function _copyFile(path, callback) {
     var copied = 0;
     var fileSize = fs.statSync(path).size;
 
-    reader.on("error", function (err) {
+    console.log("Copy file " + path);
+
+    reader.on("error", function(err) {
         done(err);
     });
 
-    writer.on("error", function (err) {
+    writer.on("error", function(err) {
         done(err);
     });
 
-    writer.on("close", function (ex) {
+    writer.on("close", function(ex) {
         done();
     });
 
     reader.pipe(writer);
 
-    reader.on('data', function (chunk) {
-        //console.log(chunk);
-        copied += parseInt(chunk.length);
+    if (withSocket) {
+        reader.on('data', function(chunk) {
 
-        percent = parseInt((copied * 100) / fileSize);
+            copied += parseInt(chunk.length);
+            percent = parseInt((copied * 100) / fileSize);
 
-        if (tempPercent != percent) {
-            tempPercent = percent;
-            console.log(tempPercent, "%");
-        }
-    });
+            if (tempPercent != percent) {
+                tempPercent = percent;
+                //console.log(tempPercent, "%");
+
+                if (tempPercent % 2 === 0)
+                    socket.emit("copy", {
+                        percent: tempPercent,
+                        path: path
+                    });
+            }
+        });
+    }
+
+
 
     function done(err) {
+
         if (!callbackCalled) {
+            console.log("File copied");
+
             callback(err);
             callbackCalled = true;
         }
     }
+}
+
+
+function _getSubtitleFromPath(path) {
+    var check = false;
+    var targetPath = "";
+    var targetSubtitle = "";
+
+    _.each(config.subtitlesExtensions, function(extension) {
+
+        targetPath = path.substr(0, path.lastIndexOf('.'));
+        targetPath += "." + extension;
+
+        if (fs.existsSync(targetPath)) {
+            targetSubtitle = targetPath;
+        }
+
+    });
+
+    return targetSubtitle;
 }
 
 /*
@@ -100,7 +142,13 @@ function _hasSubtitles(path) {
     var check = false;
     var targetPath = "";
 
-    _.each(config.subtitlesExtensions, function (extension) {
+    //Check on target 
+    path = [
+        config.target,
+        _.last(path.split("\\"))
+    ].join("\\");
+
+    _.each(config.subtitlesExtensions, function(extension) {
 
         targetPath = path.substr(0, path.lastIndexOf('.'));
         targetPath += "." + extension;
@@ -112,6 +160,7 @@ function _hasSubtitles(path) {
 
     return check;
 }
+
 
 /*
  *   Filter for fs-finder using allowed config.moviesExtensions
@@ -144,7 +193,7 @@ function _cleanFileName(path) {
     //Remove useless words
     fileName = fileName.split(" ");
 
-    _.each(config.wordsToAvoid, function (word) {
+    _.each(config.wordsToAvoid, function(word) {
         fileName = _.without(fileName, word);
     });
 
@@ -162,11 +211,107 @@ function _isCopied(path) {
     return fs.existsSync(targetPath);
 }
 
-app.get('/copyMovie', function (req, res) {
 
+function _downloadFile(results, file, callback) {
+
+    //Get only by Hash and srt format
+    var newResults = results;
+
+    newResults = _.where(results, {
+        "MatchedBy": "moviehash",
+        "SubFormat": "srt"
+    });
+
+    //Get most downloaded
+    if (newResults.length === 0) {
+        newResults = results;
+    } else {
+        newResults.push(_.max(newResults, "SubDownloadsCnt"));
+    }
+
+    console.log("dl sub : " + file);
+
+    opensubtitles.downloader.download(newResults, 1, file, callback);
+}
+
+
+app.get("/getSubtitle", function(req, res) {
     var filePath = req.query.path;
 
-    _copyFile(filePath, function (error) {
+    //If copied, get subtitle for target path
+    if (_isCopied(filePath)) {
+        filePath = [
+            config.target,
+            _.last(filePath.split("\\"))
+        ].join("\\");
+    }
+
+    opensubtitles
+        .api
+        .login()
+        .done(function(token) {
+
+            console.log("Connected to opensubtitles");
+
+            //Save token
+            _token = token;
+
+            opensubtitles
+                .api
+                .searchForFile(_token, config.langFirst, filePath)
+                .done(function(results) {
+
+                    if (results.length === 0) {
+
+                        opensubtitles
+                            .api
+                            .searchForFile(_token, config.langSecond, filePath)
+                            .done(function(results) {
+                                console.log(results);
+                                if (results.length === 0) {
+                                    res.send({
+                                        type: "error"
+                                    });
+                                } else {
+                                    _downloadFile(results, filePath, function(data) {
+                                        console.log(data);
+                                        res.send({
+                                            type: "success"
+                                        });
+                                    });
+                                }
+
+                            });
+
+                    } else {
+                        _downloadFile(results, filePath, function(data) {
+                            console.log(results);
+                            console.log(data);
+                            res.send({
+                                type: "success"
+                            });
+                        });
+                    }
+                });
+        });
+
+});
+
+app.get("/copyMovie", function(req, res) {
+
+    var filePath = req.query.path;
+    var subtitleTarget = _getSubtitleFromPath(filePath);
+
+    //Copy subtitle
+    if (subtitleTarget !== "") {
+        _copyFile(_getSubtitleFromPath(filePath), false, function(error) {});
+    }
+
+
+    //And copy file
+    _copyFile(filePath, true, function(error) {
+
+
         if (error === undefined) {
             res.send({
                 "error": true,
@@ -182,7 +327,7 @@ app.get('/copyMovie', function (req, res) {
 
 });
 
-app.get('/getMovies.json', function (req, res) {
+app.get("/getMovies", function(req, res) {
 
     var date = req.query.date;
     var hoursFrom;
@@ -195,25 +340,25 @@ app.get('/getMovies.json', function (req, res) {
     }
 
     hoursFrom = date * 24;
-    hoursTo = (date + 1) * 24;
+    hoursTo = (date + 6) * 24;
 
     finder
         .from(config.origin)
-    /*.date(">", {
+        .date(">", {
             hours: hoursTo
         })
         .date("<", {
             hours: hoursFrom
-        })*/
-    .size(">=", config.minSize * 8 * 1024)
+        })
+        .size(">=", config.minSize * 8 * 1024)
         .filter(_filterExtension)
-        .findFiles(function (files) {
+        .findFiles(function(files) {
             console.log(files);
 
             var filesReturn = [];
             var fileReturn = {};
 
-            _.each(files, function (file) {
+            _.each(files, function(file) {
                 fileReturn = {
                     "path": file,
                     "name": _cleanFileName(file),

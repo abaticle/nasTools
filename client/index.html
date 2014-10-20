@@ -1,67 +1,42 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
 
 <head>
-    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <link rel="stylesheet" href="/bower_components/angular-material/angular-material.css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link type="text/css" rel="stylesheet" href="app.css">
+
+    <script id="sap-ui-bootstrap" type="text/javascript" src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js" data-sap-ui-theme="sap_bluecrystal" data-sap-ui-libs="sap.m"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+    sap.ui.localResources("view");
+
+    jQuery.sap.registerModulePath('ApplicationBase', 'ApplicationBase');
+    jQuery.sap.registerModulePath('Application', 'Application');
+    jQuery.sap.registerModulePath('Config', 'Config');
+    jQuery.sap.registerModulePath('Ext', 'ext/');
+    jQuery.sap.registerModulePath('Language', 'language/');
+
+    // launch application
+    jQuery.sap.require("Config");
+    jQuery.sap.require("Application");
+    jQuery.sap.require("Ext.Lodash");
+    jQuery.sap.require('Ext.DataUtil');
+    jQuery.sap.require('Ext.Formatter');
+
+
+    var app = new Application({
+        root: "content",
+
+    });
+
+    app.socket = io.connect(config.webServerIP);
+    </script>
+
+    <title>Shows & subs</title>
 </head>
 
-<body ng-app="App">
-    <div ng-controller="appController">
-
-
-        <material-toolbar class="material-theme-dark">
-            <div class="material-toolbar-tools">
-                <span flex>Aujourd'hui</span>
-                <material-button class="material-button-fab">
-                    <material-icon icon="/img/icons/ic_refresh_24px.svg">
-                    </material-icon>
-                </material-button>
-            </div>
-        </material-toolbar>
-
-        <material-content>
-
-            <!-- <material-subheader>Today</material-subheader> -->
-
-            <material-list>
-
-                <material-item ng-repeat="file in files">
-                    <material-item-content>
-                        <div class="material-tile-content">
-                            <h3>{{file.name}}</h3>
-                            <h4>blabla blabla blabl</h4>
-                        </div>
-                        <div class="material-tile-right">
-                            <material-button class="material-button-fab">
-                                <material-icon icon="/img/icons/ic_refresh_24px.svg">
-                                </material-icon>
-                            </material-button>
-                        </div>
-                        &nbsp;
-                    </material-item-content>
-
-
-                </material-item>
-
-            </material-list>
-
-        </material-content>
-
-    </div>
-
-    <script src="/bower_components/angular/angular.js"></script>
-    <script src="/bower_components/angular-animate/angular-animate.js"></script>
-    <script src="/bower_components/hammerjs/hammer.js"></script>
-    <script src="/bower_components/angular-material/angular-material.js"></script>
-    <script src="/bower_components/angular-aria/angular-aria.js"></script>
-    <script src="appController.js" type="text/javascript"></script>
-    <script>
-    // Include app dependencies on ngAnimate and ngMaterial
-    angular
-        .module('App', ['ngAnimate', 'ngMaterial'])
-        .controller("appController", appController);
-    </script>
+<body class="sapUiBody" id="content">
 </body>
 
 </html>

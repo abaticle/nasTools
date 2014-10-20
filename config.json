@@ -2,13 +2,14 @@
     "rss": "http://showrss.info/rss.php?user_id=21497&hd=null&proper=null",
     "langFirst": "fre",
     "langSecond": "eng",
-    "origin": "\\\\DISKSTATION\\download",
-    "target": "\\\\FREEBOX\\Disque dur\\Vidéos",
     "moviesExtensions": [
         "avi",
         "mp4",
         "mkv"
     ],
+    "origin": "\\\\DISKSTATION\\download",
+    "target": "\\\\FREEBOX\\Disque dur\\Vidéos",
+
     "minSize": 80,
     "subtitlesExtensions": [
         "srt",
@@ -24,10 +25,12 @@
         "HDTV",
         "x264",
         "KILLERS",
-        "[VTV]", "AC3",
-        "720p", "AAC",
+        "[VTV]",
+        "AC3",
+        "720p",
+        "AAC",
         "JYK",
-        "LOL"
-
-    ]
+        "LOL", "1080p", "BluRay", "anoXmous_", "YIFY", "BRrip"
+    ],
+    "port": 8080
 }
