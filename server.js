@@ -23,12 +23,12 @@ init();
 function init() {
     var check = true;
 
-    if (!fs.existsSync(config.origin)) {
-        console.error("Error reading", config.origin);
+    if (!fs.existsSync(config.downloadFolder)) {
+        console.error("Error reading", config.downloadFolder);
         check = false;
     }
-    if (!fs.existsSync(config.target)) {
-        console.error("Error reading", config.target);
+    if (!fs.existsSync(config.tvFolder)) {
+        console.error("Error reading", config.tvFolder);
         check = false;
     }
 
@@ -57,7 +57,7 @@ function init() {
  */
 function _copyFile(path, withSocket, callback) {
     var callbackCalled = false;
-    var targetPath = config.target + "\\" + _.last(path.split("\\"));
+    var targetPath = config.tvFolder + "\\" + _.last(path.split("\\"));
     var reader = fs.createReadStream(path);
     var writer = fs.createWriteStream(targetPath);
 
@@ -144,7 +144,7 @@ function _hasSubtitles(path) {
 
     //Check on target 
     path = [
-        config.target,
+        config.tvFolder,
         _.last(path.split("\\"))
     ].join("\\");
 
@@ -206,7 +206,7 @@ function _cleanFileName(path) {
 function _isCopied(path) {
 
     var fileName = _.last(path.split("\\"));
-    var targetPath = config.target + "\\" + fileName;
+    var targetPath = config.tvFolder + "\\" + fileName;
 
     return fs.existsSync(targetPath);
 }
@@ -235,13 +235,14 @@ function _downloadFile(results, file, callback) {
 }
 
 
+
 app.get("/getSubtitle", function(req, res) {
     var filePath = req.query.path;
 
     //If copied, get subtitle for target path
     if (_isCopied(filePath)) {
         filePath = [
-            config.target,
+            config.tvFolder,
             _.last(filePath.split("\\"))
         ].join("\\");
     }
@@ -327,6 +328,40 @@ app.get("/copyMovie", function(req, res) {
 
 });
 
+
+
+
+
+function _rename() {
+    finder
+        .from(config.movieFolder)
+        .filter(_filterExtension)
+        .findFiles(function(files) {
+
+            _.each(files, function(source) {
+
+                //Keep file extension
+                var ext = _.last(source.split("."));
+
+                var folder = _.initial(source.split("\\")).join("\\");
+
+                var target = _cleanFileName(folder) + '.' + ext;
+
+                console.log("new name " + target);
+
+            /*fs.rename(source, target, function(error, data) {
+                                if (error) {
+                                    console.log(error);
+                                }
+                            })*/
+
+
+            })
+
+        });
+}
+
+
 app.get("/getMovies", function(req, res) {
 
     var date = req.query.date;
@@ -340,10 +375,10 @@ app.get("/getMovies", function(req, res) {
     }
 
     hoursFrom = date * 24;
-    hoursTo = (date + 6) * 24;
+    hoursTo = (date + 1) * 24;
 
     finder
-        .from(config.origin)
+        .from(config.downloadFolder)
         .date(">", {
             hours: hoursTo
         })

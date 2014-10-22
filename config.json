@@ -7,8 +7,10 @@
         "mp4",
         "mkv"
     ],
-    "origin": "\\\\DISKSTATION\\download",
-    "target": "\\\\FREEBOX\\Disque dur\\Vidéos",
+    "downloadFolder": "\\\\DISKSTATION\\download",
+    "tvFolder": "\\\\FREEBOX\\Disque dur\\Vidéos",
+    "movieFolder": "\\\\DISKSTATION\\video\\Films",
+
 
     "minSize": 80,
     "subtitlesExtensions": [
@@ -24,13 +26,14 @@
         "ETRG",
         "HDTV",
         "x264",
-        "KILLERS",
-        "[VTV]",
+        "KILLERS", "KLAXXON",
+        "[VTV]", "ViSiON",
         "AC3",
-        "720p",
+        "720p", "1080P",
         "AAC",
         "JYK",
-        "LOL", "1080p", "BluRay", "anoXmous_", "YIFY", "BRrip"
+        "LOL", "1080p", "BluRay", "anoXmous_", "YIFY", "BRrip",
+        "DVDRiP", "XviD", "LAZi", "9Fish", "2002", "2004", "2005", "2006", "2007", "2008", "2003", "2009", "2012", "Bdrip", "Dvdrip"
     ],
     "port": 8080
 }
